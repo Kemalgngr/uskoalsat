@@ -102,24 +102,31 @@
     .divider-v { width:1px; height:24px; background:var(--g200); margin:0 4px; }
 
     /* ITEMS GRID */
-    .items-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:16px; }
-    .item-card { background:white; border:1px solid var(--g200); border-radius:var(--r-lg); padding:20px; box-shadow:var(--sh); transition:all .2s; display:flex; flex-direction:column; gap:14px; position:relative; }
-    .item-card:hover { box-shadow:var(--sh-lg); transform:translateY(-2px); border-color:var(--blue-pale2); }
-    .item-card-top { display:flex; align-items:center; gap:12px; }
-    .item-icon-wrap { width:48px; height:48px; border-radius:10px; background:var(--g100); display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid var(--g200); overflow:hidden; }
-    .item-icon-wrap img { width:40px; height:40px; object-fit:contain; }
-    .item-name { font-size:15px; font-weight:700; color:var(--g900); line-height:1.3; }
-    .item-server-tag { font-size:12px; color:var(--g400); margin-top:2px; }
-    .item-featured { position:absolute; top:14px; right:14px; background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; border-radius:6px; padding:2px 7px; font-size:11px; font-weight:700; }
-    .item-price-gb { font-size:22px; font-weight:800; color:var(--blue-mid); letter-spacing:-0.5px; }
-    .item-price-unit { font-size:13px; font-weight:500; color:var(--g400); margin-left:2px; }
-    .item-price-coin { font-size:12px; color:var(--g400); margin-top:2px; }
-    .item-note { font-size:12px; color:var(--g500); background:var(--g50); border-radius:6px; padding:6px 10px; border:1px solid var(--g100); }
-    .btn-add-cart { width:100%; padding:10px; border-radius:var(--r); font-size:14px; font-weight:600; cursor:pointer; border:none; font-family:inherit; background:linear-gradient(135deg,var(--blue),var(--blue-light)); color:white; transition:all .15s; box-shadow:0 2px 8px rgba(26,86,219,0.2); }
-    .btn-add-cart:hover { box-shadow:var(--sh-blue); transform:translateY(-1px); }
-    .btn-add-cart.in-cart { background:linear-gradient(135deg,var(--green),#34d399); box-shadow:0 2px 8px rgba(16,185,129,0.2); }
-    .btn-login-card { width:100%; padding:10px; border-radius:var(--r); font-size:14px; font-weight:500; cursor:pointer; border:1.5px solid var(--g200); background:white; color:var(--g500); transition:all .15s; font-family:inherit; }
-    .btn-login-card:hover { border-color:var(--blue-light); color:var(--blue-mid); }
+    /* ITEMS LIST */
+    .items-list { background:white; border:1px solid var(--g200); border-radius:var(--r-lg); overflow:hidden; box-shadow:var(--sh); }
+    .items-list-header { display:grid; grid-template-columns:2.5fr 90px 130px 110px 1fr; gap:8px; padding:10px 20px; background:var(--g50); border-bottom:1px solid var(--g200); font-size:11px; font-weight:600; color:var(--g400); text-transform:uppercase; letter-spacing:0.5px; align-items:center; }
+    .item-row { display:grid; grid-template-columns:2.5fr 90px 130px 110px 1fr; gap:8px; padding:12px 20px; border-bottom:1px solid var(--g200); align-items:center; transition:background .1s; }
+    .item-row:last-child { border-bottom:none; }
+    .item-row:hover { background:var(--g50); }
+    .item-row-name { display:flex; align-items:center; gap:10px; }
+    .item-icon-wrap { width:38px; height:38px; border-radius:8px; background:var(--g100); display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid var(--g200); overflow:hidden; }
+    .item-icon-wrap img { width:30px; height:30px; object-fit:contain; }
+    .item-name { font-size:13px; font-weight:600; color:var(--g900); line-height:1.3; }
+    .item-featured-tag { display:inline-block; background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; border-radius:4px; padding:1px 5px; font-size:10px; font-weight:700; margin-left:5px; }
+    .item-note-small { font-size:11px; color:var(--g400); margin-top:1px; }
+    .item-price-gb { font-size:14px; font-weight:800; color:var(--blue-mid); }
+    .item-price-coin { font-size:11px; color:var(--g400); margin-top:1px; }
+    .item-server-badge { display:inline-flex; align-items:center; gap:4px; background:var(--g100); color:var(--g500); border-radius:6px; padding:3px 8px; font-size:12px; font-weight:500; }
+    .item-server-dot { width:5px; height:5px; border-radius:50%; background:var(--green); flex-shrink:0; }
+    .item-row-btns { display:flex; gap:5px; justify-content:flex-end; flex-wrap:nowrap; }
+    .btn-cart { padding:5px 10px; border-radius:7px; font-size:12px; font-weight:600; cursor:pointer; border:none; font-family:inherit; background:var(--blue-mid); color:white; transition:all .15s; white-space:nowrap; }
+    .btn-cart:hover { background:var(--blue); }
+    .btn-cart.in-cart { background:var(--green); }
+    .btn-offer { padding:5px 10px; border-radius:7px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; background:#eff6ff; color:var(--blue-mid); border:1px solid #bfdbfe; transition:all .15s; white-space:nowrap; }
+    .btn-offer:hover { background:#dbeafe; }
+    .btn-buynow { padding:5px 10px; border-radius:7px; font-size:12px; font-weight:600; cursor:pointer; border:none; font-family:inherit; background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; transition:all .15s; white-space:nowrap; }
+    .btn-buynow:hover { background:#dcfce7; }
+    .btn-login-row { padding:5px 10px; border-radius:7px; font-size:12px; font-weight:500; cursor:pointer; border:1px solid var(--g200); background:white; color:var(--g500); font-family:inherit; }
 
     /* CART SIDEBAR */
     .buy-layout { display:grid; grid-template-columns:1fr 320px; gap:24px; align-items:start; }
@@ -364,6 +371,28 @@
   </div>
 </div>
 
+
+<!-- MODAL: TEKLİF VER -->
+<div class="modal-overlay" id="modal-offer" style="display:none">
+  <div class="modal">
+    <div class="modal-title">💬 Teklif Ver</div>
+    <div class="modal-sub" id="offer-item-detail"></div>
+    <div class="form-group">
+      <label class="form-label">Teklif Ettiğin Fiyat (GB)</label>
+      <input class="form-input" type="number" id="offer-price" step="0.1" placeholder="Örn: 4.5" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Knight Online Karakter Adın</label>
+      <input class="form-input" id="offer-char" placeholder="Karakter adını gir..." />
+    </div>
+    <div class="alert alert-info" style="font-size:13px">ℹ️ Teklifiniz satıcıya iletilecek. Onaylanırsa oyun içi buluşma ayarlanacak.</div>
+    <div class="modal-btns">
+      <button class="btn-ghost" onclick="closeModal('modal-offer')">İptal</button>
+      <button class="btn-cta" onclick="submitOffer()">💬 Teklifi Gönder</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: SİPARİŞ -->
 <div class="modal-overlay" id="modal-order" style="display:none">
   <div class="modal">
@@ -484,23 +513,33 @@ function renderItems() {
     c.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><h3>Stokta eşya yok</h3><p>Yakında yeni eşyalar eklenecek.</p></div>';
     return;
   }
-  let html = '<div class="items-grid">';
+  let html = `<div class="items-list">
+    <div class="items-list-header">
+      <div>Eşya</div><div>Fiyat (GB)</div><div>Coin</div><div>Sunucu</div><div></div>
+    </div>`;
   allItems.forEach(item => {
     const inCart = cart.some(c => c.id===item.id);
-    const icon = item.icon_url ? `<img src="${item.icon_url}" style="width:40px;height:40px;object-fit:contain" onerror="this.parentElement.innerHTML='⚔️'" />` : '⚔️';
-    const featured = item.is_featured ? `<div class="item-featured">🔥 İndirim</div>` : '';
+    const icon = item.icon_url ? `<img src="${item.icon_url}" onerror="this.parentElement.innerHTML='⚔️'" />` : '⚔️';
+    const featured = item.is_featured ? `<span class="item-featured-tag">🔥 İndirim</span>` : '';
     const coin = Number(item.price_coin).toLocaleString('tr-TR');
-    const note = item.note ? `<div class="item-note">📝 ${item.note}</div>` : '';
-    const btn = currentUser
-      ? `<button class="btn-add-cart ${inCart?'in-cart':''}" onclick="toggleCart(${item.id})">${inCart?'✓ Sepette':'Sepete Ekle'}</button>`
-      : `<button class="btn-login-card" onclick="navigate('login')">Satın almak için giriş yap</button>`;
-    html += `<div class="item-card" id="card-${item.id}">${featured}
-      <div class="item-card-top"><div class="item-icon-wrap">${icon}</div>
-        <div><div class="item-name">${item.name}</div><div class="item-server-tag">${item.servers?.name||'-'}</div></div>
+    const note = item.note ? `<div class="item-note-small">${item.note}</div>` : '';
+    const btns = currentUser
+      ? `<div class="item-row-btns" id="btns-${item.id}">
+          <button class="btn-cart ${inCart?'in-cart':''}" onclick="toggleCart(${item.id})">${inCart?'✓ Sepette':'🛒 Sepete Ekle'}</button>
+          <button class="btn-offer" onclick="openOfferModal(${item.id})">💬 Teklif Ver</button>
+          <button class="btn-buynow" onclick="buyNow(${item.id})">⚡ Şimdi Al</button>
+        </div>`
+      : `<div class="item-row-btns"><button class="btn-login-row" onclick="navigate('login')">Giriş Yap</button></div>`;
+    html += `<div class="item-row" id="row-${item.id}">
+      <div class="item-row-name">
+        <div class="item-icon-wrap">${icon}</div>
+        <div><div class="item-name">${item.name}${featured}</div>${note}</div>
       </div>
-      <div><span class="item-price-gb">${item.price_gb}</span><span class="item-price-unit"> GB</span>
-        <div class="item-price-coin">${coin} coin</div></div>
-      ${note}${btn}</div>`;
+      <div><div class="item-price-gb">${item.price_gb} GB</div></div>
+      <div><div class="item-price-coin">${coin}</div></div>
+      <div><span class="item-server-badge"><span class="item-server-dot"></span>${item.servers?.name||'-'}</span></div>
+      ${btns}
+    </div>`;
   });
   html += '</div>';
   c.innerHTML = html;
@@ -515,10 +554,10 @@ function toggleCart(itemId) {
   else { cart.push({id:item.id, name:item.name, price_gb:item.price_gb, price_coin:item.price_coin, server_id:item.server_id, server_name:item.servers?.name||''}); }
   renderCartPanel();
   // update button
-  const btn = document.querySelector(`#card-${itemId} .btn-add-cart`);
+  const btn = document.querySelector(`#btns-${itemId} .btn-cart`);
   if (btn) {
     const inCart = cart.some(c => c.id===itemId);
-    btn.className = `btn-add-cart ${inCart?'in-cart':''}`;
+    btn.className = `btn-cart ${inCart?'in-cart':''}`;
     btn.textContent = inCart ? '✓ Sepette' : 'Sepete Ekle';
   }
 }
@@ -802,6 +841,56 @@ async function updateReq(id, status) {
 }
 
 function closeModal(id) { document.getElementById(id).style.display='none'; }
+
+
+let offerItemId = null;
+function openOfferModal(itemId) {
+  offerItemId = itemId;
+  const item = allItems.find(i => i.id===itemId);
+  if (!item) return;
+  document.getElementById('offer-item-detail').innerHTML = `<strong>${item.name}</strong> — Liste fiyatı: <strong>${item.price_gb} GB</strong>`;
+  document.getElementById('offer-price').value = '';
+  document.getElementById('offer-char').value = '';
+  document.getElementById('modal-offer').style.display = 'flex';
+}
+
+async function submitOffer() {
+  const price = document.getElementById('offer-price').value;
+  const charName = document.getElementById('offer-char').value.trim();
+  if (!price || !charName) { alert('Lütfen tüm alanları doldurun.'); return; }
+  const item = allItems.find(i => i.id===offerItemId);
+  if (!item) return;
+  const { error } = await db.from('sell_requests').insert({
+    user_id: currentUser.id,
+    server_id: item.server_id,
+    items_list: `[TEKLİF] ${item.name}\nListe fiyatı: ${item.price_gb} GB\nTeklif: ${price} GB\nKarakter: ${charName}`,
+    status: 'teklif'
+  });
+  if (error) { alert('Hata: '+error.message); return; }
+  closeModal('modal-offer');
+  alert('✅ Teklifiniz gönderildi! En kısa sürede size dönüş yapacağız.');
+}
+
+function buyNow(itemId) {
+  if (!currentUser) { navigate('login'); return; }
+  const item = allItems.find(i => i.id===itemId);
+  if (!item) return;
+  // Add to cart if not already there
+  if (!cart.some(c => c.id===itemId)) {
+    cart.push({id:item.id, name:item.name, price_gb:item.price_gb, price_coin:item.price_coin, server_id:item.server_id, server_name:item.servers?.name||''});
+    renderCartPanel();
+    renderItems();
+  }
+  // Open order modal directly
+  const charInput = document.getElementById('cart-char');
+  if (charInput && charInput.value.trim()) {
+    openOrderModal();
+  } else {
+    // scroll to cart
+    document.getElementById('cart-panel').scrollIntoView({behavior:'smooth'});
+    alert('Sepete eklendi! Karakter adınızı girerek sipariş verebilirsiniz.');
+  }
+}
 
 init();
 </script>
