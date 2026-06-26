@@ -637,45 +637,164 @@ function filterServer(id, chip) {
   if (document.getElementById('page-buy').classList.contains('active')) loadItems();
 }
 
-function renderSellPage() {
+let sellList = []; // {name, category}
+let koItems = [];
+
+async function renderSellPage() {
   const el = document.getElementById('sell-content');
   if (!currentUser) {
     el.innerHTML = `<div class="alert alert-info" style="max-width:560px">ℹ️ Eşya satışı yapabilmek için giriş yapman gerekiyor.</div>
       <div style="display:flex;gap:10px;margin-top:16px"><button class="btn-cta" onclick="navigate('login')">Giriş Yap</button><button class="btn-ghost" onclick="navigate('register')">Kayıt Ol</button></div>`;
     return;
   }
+
+  // Load KO items if not loaded
+  if (!koItems.length) {
+    const { data } = await db.from('ko_items').select('*').order('name');
+    koItems = data || [];
+  }
+
   el.innerHTML = `<div class="sell-layout">
-    <div class="form-card">
-      <div class="form-card-title">Eşya Listesi Gönder</div>
-      <div id="sell-alert"></div>
-      <div class="form-group"><label class="form-label">Sunucu</label>
-        <select class="form-select" id="sell-server"><option value="">Sunucu seçin...</option>
-          ${allServers.map(s=>`<option value="${s.id}">${s.name}</option>`).join('')}
-        </select></div>
-      <div class="form-group"><label class="form-label">Satmak İstediğin Eşyalar</label>
-        <textarea class="form-textarea" id="sell-items" placeholder="Her satıra bir eşya yaz:&#10;Exceptional Iron Bow +7&#10;Dragon Scale Helmet +5&#10;Crystal Belt..."></textarea>
-        <div class="form-hint">Her satıra bir eşya, adını ve +değerini belirt.</div></div>
-      <button class="btn-cta" style="padding:11px 24px;font-size:15px" onclick="submitSell()">💰 Teklif İste</button>
+    <div>
+      <div class="form-card" style="margin-bottom:16px">
+        <div class="form-card-title">Satmak İstediğin Eşyaları Seç</div>
+        <div id="sell-alert"></div>
+        <div class="form-group">
+          <label class="form-label">Sunucu</label>
+          <select class="form-select" id="sell-server">
+            <option value="">Sunucu seçin...</option>
+            ${allServers.map(s=>`<option value="${s.id}">${s.name}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Eşya Ara</label>
+          <div style="display:flex;gap:8px">
+            <input class="form-input" id="sell-search" placeholder="Eşya adı ara... (ör. Raptor, Iron Bow)" oninput="searchKoItems()" autocomplete="off" />
+            <button class="btn-cta" style="white-space:nowrap;padding:10px 16px" onclick="addCustomItem()">+ Ekle</button>
+          </div>
+          <div class="form-hint">Listede olmayan bir eşyayı ismiyle yazıp "Ekle" butonuna bas.</div>
+        </div>
+        <div id="search-results" style="display:none;background:white;border:1px solid var(--g200);border-radius:var(--r);max-height:220px;overflow-y:auto;margin-top:-10px;margin-bottom:14px;box-shadow:var(--sh-md)"></div>
+      </div>
+
+      <!-- Sell List -->
+      <div class="form-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div class="form-card-title" style="margin-bottom:0">📋 Eşya Listem <span id="sell-count" style="font-size:13px;font-weight:500;color:var(--g400)"></span></div>
+        </div>
+        <div id="sell-list-items">
+          <div style="text-align:center;padding:32px;color:var(--g400);font-size:14px">
+            <div style="font-size:36px;margin-bottom:8px;opacity:0.4">📦</div>
+            Henüz eşya eklemediniz.<br/>Yukarıdan arayarak ekleyin.
+          </div>
+        </div>
+        <div id="sell-submit-area" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--g200)">
+          <button class="btn-cta" style="width:100%;padding:12px;font-size:15px" onclick="submitSell()">💰 Teklif İste</button>
+        </div>
+      </div>
     </div>
+
     <div class="info-card">
       <div class="info-card-title">📋 Nasıl çalışır?</div>
+      <div class="info-card-item">🔍 <span>Eşyaları arayıp listene ekle</span></div>
       <div class="info-card-item">⚡ <span>Listeni gönder, 15 dk içinde teklifini al</span></div>
       <div class="info-card-item">🔒 <span>Güvenli oyun içi takas</span></div>
       <div class="info-card-item">💰 <span>Ödeme anında, GB veya coin</span></div>
       <div class="info-card-item">🎮 <span>Zero 8 sunucusu desteklenmektedir</span></div>
-    </div></div>`;
+    </div>
+  </div>`;
+
+  renderSellList();
+}
+
+function searchKoItems() {
+  const q = document.getElementById('sell-search').value.trim().toLowerCase();
+  const res = document.getElementById('search-results');
+  if (!q || q.length < 2) { res.style.display='none'; return; }
+  const matches = koItems.filter(i => i.name.toLowerCase().includes(q)).slice(0, 12);
+  if (!matches.length) { res.style.display='none'; return; }
+  res.style.display = 'block';
+  res.innerHTML = matches.map(item => `
+    <div onclick="addItemToSellList('${item.name.replace(/'/g,"\'")}','${item.category}')"
+      style="padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--g100);transition:background .1s"
+      onmouseover="this.style.background='var(--g50)'" onmouseout="this.style.background='white'">
+      <span style="font-size:20px">⚔️</span>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--g900)">${item.name}</div>
+        <div style="font-size:11px;color:var(--g400)">${item.category}</div>
+      </div>
+    </div>`).join('');
+}
+
+function addItemToSellList(name, category) {
+  if (sellList.some(i => i.name === name)) {
+    document.getElementById('search-results').style.display='none';
+    document.getElementById('sell-search').value='';
+    return;
+  }
+  sellList.push({ name, category });
+  document.getElementById('search-results').style.display='none';
+  document.getElementById('sell-search').value='';
+  renderSellList();
+}
+
+function addCustomItem() {
+  const val = document.getElementById('sell-search').value.trim();
+  if (!val) return;
+  if (sellList.some(i => i.name.toLowerCase() === val.toLowerCase())) {
+    document.getElementById('sell-search').value='';
+    document.getElementById('search-results').style.display='none';
+    return;
+  }
+  sellList.push({ name: val, category: 'Diğer' });
+  document.getElementById('sell-search').value='';
+  document.getElementById('search-results').style.display='none';
+  renderSellList();
+}
+
+function removeFromSellList(idx) {
+  sellList.splice(idx, 1);
+  renderSellList();
+}
+
+function renderSellList() {
+  const el = document.getElementById('sell-list-items');
+  const countEl = document.getElementById('sell-count');
+  const submitEl = document.getElementById('sell-submit-area');
+  if (!el) return;
+  if (!sellList.length) {
+    countEl.textContent = '';
+    submitEl.style.display='none';
+    el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--g400);font-size:14px">
+      <div style="font-size:36px;margin-bottom:8px;opacity:0.4">📦</div>
+      Henüz eşya eklemediniz.<br/>Yukarıdan arayarak ekleyin.
+    </div>`;
+    return;
+  }
+  countEl.textContent = `(${sellList.length} eşya)`;
+  submitEl.style.display='block';
+  el.innerHTML = sellList.map((item, idx) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--g100)">
+      <span style="font-size:20px">⚔️</span>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:var(--g900)">${item.name}</div>
+        <div style="font-size:11px;color:var(--g400)">${item.category}</div>
+      </div>
+      <button onclick="removeFromSellList(${idx})" style="background:none;border:none;cursor:pointer;color:var(--g400);font-size:18px;padding:2px 6px;border-radius:4px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--g400)'">✕</button>
+    </div>`).join('');
 }
 
 async function submitSell() {
   const serverId = document.getElementById('sell-server').value;
-  const items = document.getElementById('sell-items').value.trim();
   const alertEl = document.getElementById('sell-alert');
   if (!serverId) { alertEl.innerHTML = '<div class="alert alert-error">⚠️ Lütfen sunucu seçin.</div>'; return; }
-  if (!items) { alertEl.innerHTML = '<div class="alert alert-error">⚠️ Lütfen eşya listesi girin.</div>'; return; }
-  const { error } = await db.from('sell_requests').insert({ user_id:currentUser.id, server_id:parseInt(serverId), items_list:items, status:'beklemede' });
+  if (!sellList.length) { alertEl.innerHTML = '<div class="alert alert-error">⚠️ Lütfen en az bir eşya ekleyin.</div>'; return; }
+  const itemsText = sellList.map(i => `• ${i.name}`).join('\n');
+  const { error } = await db.from('sell_requests').insert({ user_id:currentUser.id, server_id:parseInt(serverId), items_list:itemsText, status:'beklemede' });
   if (error) { alertEl.innerHTML = `<div class="alert alert-error">❌ ${error.message}</div>`; return; }
   alertEl.innerHTML = '<div class="alert alert-success">✅ Talebiniz alındı! En kısa sürede size teklif ileteceğiz.</div>';
-  document.getElementById('sell-items').value = '';
+  sellList = [];
+  renderSellList();
   document.getElementById('sell-server').value = '';
 }
 
@@ -892,6 +1011,14 @@ function buyNow(itemId) {
   }
 }
 
+
+document.addEventListener('click', function(e) {
+  const res = document.getElementById('search-results');
+  const inp = document.getElementById('sell-search');
+  if (res && inp && !res.contains(e.target) && e.target !== inp) {
+    res.style.display='none';
+  }
+});
 init();
 </script>
 </body>
