@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>uskoalsat — Knight Online Eşya Alım Satım</title>
+  <meta name="description" content="uskoalsat — Knight Online eşyalarını anında oyun parasına çevir. Güvenli, hızlı oyun içi takas." />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #1a56db;
+      --primary-dark: #1440a8;
+      --accent: #f59e0b;
+      --green: #16a34a;
+      --red: #dc2626;
+      --bg: #ffffff;
+      --bg2: #f8fafc;
+      --bg3: #f1f5f9;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text2: #475569;
+      --text3: #94a3b8;
+      --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.05);
+      --radius: 8px;
+    }
+
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* NAV */
+    nav {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: var(--shadow);
+    }
+    .nav-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; gap: 8px;
+      padding: 0 20px; height: 60px;
+    }
+    .logo {
+      font-weight: 800; font-size: 20px; color: var(--primary);
+      text-decoration: none; letter-spacing: -0.5px; margin-right: 16px;
+    }
+    .nav-links { display: flex; gap: 4px; flex: 1; }
+    .nav-btn {
+      padding: 7px 14px; border-radius: var(--radius);
+      font-size: 14px; font-weight: 500; cursor: pointer;
+      border: none; background: transparent; color: var(--text2);
+      transition: all 0.15s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .nav-btn:hover { background: var(--bg3); color: var(--text); }
+    .nav-btn.active { background: var(--bg3); color: var(--primary); font-weight: 600; }
+    .nav-auth { display: flex; gap: 8px; margin-left: auto; }
+    .btn-outline {
+      padding: 7px 16px; border-radius: var(--radius); font-size: 14px;
+      font-weight: 500; cursor: pointer; border: 1px solid var(--border);
+      background: #fff; color: var(--text); transition: all 0.15s;
+    }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-primary {
+      padding: 7px 16px; border-radius: var(--radius); font-size: 14px;
+      font-weight: 600; cursor: pointer; border: none;
+      background: var(--primary); color: #fff; transition: all 0.15s;
+    }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-danger {
+      padding: 7px 16px; border-radius: var(--radius); font-size: 14px;
+      font-weight: 500; cursor: pointer; border: none;
+      background: #fee2e2; color: var(--red); transition: all 0.15s;
+    }
+    .btn-danger:hover { background: #fecaca; }
+
+    /* SERVER BAR */
+    .server-bar {
+      background: var(--bg2); border-bottom: 1px solid var(--border);
+      padding: 8px 20px; overflow-x: auto; white-space: nowrap;
+    }
+    .server-bar-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 6px; }
+    .server-label { font-size: 12px; color: var(--text3); font-weight: 500; margin-right: 4px; }
+    .server-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;
+      cursor: pointer; border: 1px solid var(--border); background: #fff;
+      color: var(--text2); transition: all 0.15s;
+    }
+    .server-chip:hover { border-color: var(--primary); color: var(--primary); }
+    .server-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .server-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+    /* PAGE */
+    .page { display: none; }
+    .page.active { display: block; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 32px 20px; }
+
+    /* HOME */
+    .hero {
+      text-align: center; padding: 64px 20px 48px;
+      background: linear-gradient(135deg, #eff6ff 0%, #fff 60%);
+      border-bottom: 1px solid var(--border);
+    }
+    .hero h1 { font-size: 40px; font-weight: 800; color: var(--text); line-height: 1.1; margin-bottom: 16px; }
+    .hero h1 span { color: var(--primary); }
+    .hero p { font-size: 18px; color: var(--text2); max-width: 500px; margin: 0 auto 32px; }
+    .hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .hero-btns .btn-big {
+      padding: 14px 32px; border-radius: var(--radius); font-size: 16px;
+      font-weight: 700; cursor: pointer; border: none; transition: all 0.15s;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-big-primary { background: var(--primary); color: #fff; }
+    .btn-big-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+    .btn-big-secondary { background: #fff; color: var(--text); border: 2px solid var(--border) !important; }
+    .btn-big-secondary:hover { border-color: var(--primary) !important; color: var(--primary); transform: translateY(-1px); }
+
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 48px; }
+    @media (max-width: 640px) { .steps { grid-template-columns: 1fr; } .hero h1 { font-size: 28px; } }
+    .step {
+      background: #fff; border: 1px solid var(--border); border-radius: 12px;
+      padding: 28px 24px; text-align: left; box-shadow: var(--shadow);
+    }
+    .step-num {
+      width: 36px; height: 36px; border-radius: 50%; background: var(--primary);
+      color: #fff; font-weight: 800; font-size: 16px;
+      display: flex; align-items: center; justify-content: center; margin-bottom: 16px;
+    }
+    .step h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+    .step p { font-size: 14px; color: var(--text2); line-height: 1.6; }
+
+    /* ITEMS TABLE */
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .page-title { font-size: 24px; font-weight: 700; }
+    .sort-bar { display: flex; gap: 6px; flex-wrap: wrap; }
+    .sort-btn {
+      padding: 6px 12px; border-radius: var(--radius); font-size: 13px;
+      cursor: pointer; border: 1px solid var(--border); background: #fff;
+      color: var(--text2); transition: all 0.15s; font-weight: 500;
+    }
+    .sort-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .sort-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    .filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+    .filter-btn {
+      padding: 6px 14px; border-radius: 20px; font-size: 13px;
+      cursor: pointer; border: 1px solid var(--border); background: #fff;
+      color: var(--text2); transition: all 0.15s; font-weight: 500;
+    }
+    .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    .items-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .items-table th { background: var(--bg2); padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+    .items-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
+    .items-table tr:last-child td { border-bottom: none; }
+    .items-table tr:hover td { background: var(--bg2); }
+
+    .item-name { display: flex; align-items: center; gap: 10px; font-weight: 500; }
+    .item-icon { width: 32px; height: 32px; object-fit: contain; border-radius: 4px; background: var(--bg3); }
+    .item-icon-placeholder { width: 32px; height: 32px; border-radius: 4px; background: var(--bg3); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .price-gb { font-weight: 700; color: var(--primary); }
+    .price-coin { font-size: 12px; color: var(--text3); }
+    .badge-featured { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; border-radius: 4px; padding: 2px 6px; font-size: 11px; font-weight: 600; }
+    .badge-server { background: var(--bg3); color: var(--text2); border-radius: 4px; padding: 3px 8px; font-size: 12px; font-weight: 500; }
+    .btn-buy {
+      padding: 6px 14px; border-radius: var(--radius); font-size: 13px;
+      font-weight: 600; cursor: pointer; border: none;
+      background: var(--primary); color: #fff; transition: all 0.15s; white-space: nowrap;
+    }
+    .btn-buy:hover { background: var(--primary-dark); }
+    .btn-buy-login {
+      padding: 6px 14px; border-radius: var(--radius); font-size: 13px;
+      font-weight: 500; cursor: pointer; border: 1px solid var(--border);
+      background: #fff; color: var(--text2); transition: all 0.15s; white-space: nowrap;
+    }
+    .btn-buy-login:hover { border-color: var(--primary); color: var(--primary); }
+
+    .empty-state { text-align: center; padding: 64px 20px; color: var(--text3); }
+    .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-state p { font-size: 16px; }
+
+    /* SELL FORM */
+    .form-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 32px; box-shadow: var(--shadow); max-width: 640px; }
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+    .form-input, .form-select, .form-textarea {
+      width: 100%; padding: 10px 14px; border-radius: var(--radius);
+      border: 1px solid var(--border); font-size: 14px; color: var(--text);
+      background: #fff; transition: border-color 0.15s; outline: none; font-family: inherit;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,86,219,0.1); }
+    .form-textarea { resize: vertical; min-height: 140px; }
+    .form-hint { font-size: 12px; color: var(--text3); margin-top: 4px; }
+
+    .info-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius); padding: 14px 16px; margin-bottom: 24px; font-size: 14px; color: #1e40af; display: flex; gap: 10px; align-items: flex-start; }
+
+    /* AUTH */
+    .auth-wrap { min-height: calc(100vh - 120px); display: flex; align-items: center; justify-content: center; padding: 32px 20px; }
+    .auth-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 40px; box-shadow: var(--shadow-md); width: 100%; max-width: 420px; }
+    .auth-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+    .auth-sub { font-size: 14px; color: var(--text2); margin-bottom: 28px; }
+    .auth-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: var(--text3); font-size: 13px; }
+    .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .auth-link { color: var(--primary); cursor: pointer; font-weight: 600; text-decoration: none; }
+    .auth-link:hover { text-decoration: underline; }
+    .auth-footer { text-align: center; margin-top: 20px; font-size: 14px; color: var(--text2); }
+
+    /* RANK */
+    .rank-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .rank-table th { background: var(--bg2); padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+    .rank-table td { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .rank-table tr:last-child td { border-bottom: none; }
+    .rank-num { font-weight: 800; color: var(--text3); width: 40px; }
+    .rank-1 .rank-num { color: #f59e0b; }
+    .rank-2 .rank-num { color: #94a3b8; }
+    .rank-3 .rank-num { color: #b45309; }
+
+    /* ALERT */
+    .alert { padding: 12px 16px; border-radius: var(--radius); font-size: 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .alert-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+    .alert-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+
+    /* MODAL */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .modal { background: #fff; border-radius: 16px; padding: 32px; max-width: 480px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+    .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .modal-sub { font-size: 14px; color: var(--text2); margin-bottom: 24px; }
+    .modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+
+    /* LOADING */
+    .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-state { display: flex; align-items: center; justify-content: center; padding: 48px; gap: 12px; color: var(--text2); font-size: 14px; }
+
+    /* FOOTER */
+    footer { border-top: 1px solid var(--border); padding: 24px 20px; text-align: center; font-size: 13px; color: var(--text3); margin-top: 48px; }
+    footer a { color: var(--text3); text-decoration: none; margin: 0 8px; }
+    footer a:hover { color: var(--primary); }
+
+    /* ADMIN */
+    .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 768px) { .admin-grid { grid-template-columns: 1fr; } }
+    .stat-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 24px; box-shadow: var(--shadow); }
+    .stat-card .stat-val { font-size: 32px; font-weight: 800; color: var(--primary); }
+    .stat-card .stat-label { font-size: 14px; color: var(--text2); margin-top: 4px; }
+
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+    .tag-green { background: #f0fdf4; color: var(--green); border: 1px solid #bbf7d0; }
+    .tag-yellow { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+    .tag-red { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
+
+    .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: #fff; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a class="logo" href="#" onclick="navigate('home')">⚔️ uskoalsat</a>
+    <div class="nav-links">
+      <button class="nav-btn" onclick="navigate('sell')">💰 Bize Sat</button>
+      <button class="nav-btn" onclick="navigate('buy')">🛒 Bizden Al</button>
+      <button class="nav-btn" onclick="navigate('rank')">🏆 Rank</button>
+    </div>
+    <div class="nav-auth" id="nav-auth">
+      <button class="btn-outline" onclick="navigate('login')">Giriş Yap</button>
+      <button class="btn-primary" onclick="navigate('register')">Kayıt Ol</button>
+    </div>
+  </div>
+</nav>
+
+<!-- SERVER BAR -->
+<div class="server-bar">
+  <div class="server-bar-inner" id="server-bar">
+    <span class="server-label">Sunucular:</span>
+    <div class="server-chip active" onclick="filterServer(null, this)">
+      <span class="dot"></span> Tümü
+    </div>
+  </div>
+</div>
+
+<!-- PAGES -->
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <h1>Knight Online eşyanı<br/><span>anında oyun parasına</span> çevir</h1>
+    <p>uskoalsat ile eşyanı güvenle sat ya da stoktaki eşyaları satın al. Hızlı, güvenli, oyun içi takas.</p>
+    <div class="hero-btns">
+      <a class="btn-big btn-big-primary" href="#" onclick="navigate('sell')">💰 BİZE SAT</a>
+      <a class="btn-big btn-big-secondary" href="#" onclick="navigate('buy')">🛒 BİZDEN AL</a>
+    </div>
+    <div class="container">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <h3>LİSTENİ OLUŞTUR</h3>
+          <p>Satmak istediğin eşyaları seç ve listeni gönder.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <h3>TEKLİF AL</h3>
+          <p>Listeni fiyatlandırıp sana net teklifimizi GB/coin olarak iletiriz.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <h3>TESLİM ET</h3>
+          <p>Teklifi kabul edersen belirlenen lokasyona gel, eşyanı teslim et, ödemeni anında al.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BUY PAGE -->
+<div class="page" id="page-buy">
+  <div class="container">
+    <div class="page-header">
+      <h1 class="page-title">🛒 Bizden Al</h1>
+      <div class="sort-bar">
+        <button class="sort-btn active" onclick="sortItems('new', this)">En yeni</button>
+        <button class="sort-btn" onclick="sortItems('cheap', this)">Ucuz → Pahalı</button>
+        <button class="sort-btn" onclick="sortItems('expensive', this)">Pahalı → Ucuz</button>
+        <button class="sort-btn" onclick="sortItems('name', this)">İsme göre</button>
+      </div>
+    </div>
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterFeatured(false, this)">Tümü</button>
+      <button class="filter-btn" onclick="filterFeatured(true, this)">🔥 Fırsatlar</button>
+    </div>
+    <div id="items-container">
+      <div class="loading-state"><div class="spinner"></div> Eşyalar yükleniyor...</div>
+    </div>
+  </div>
+</div>
+
+<!-- SELL PAGE -->
+<div class="page" id="page-sell">
+  <div class="container">
+    <h1 class="page-title" style="margin-bottom:24px">💰 Bize Sat</h1>
+    <div id="sell-content"></div>
+  </div>
+</div>
+
+<!-- RANK PAGE -->
+<div class="page" id="page-rank">
+  <div class="container">
+    <h1 class="page-title" style="margin-bottom:24px">🏆 Satıcı Sıralaması</h1>
+    <div id="rank-content">
+      <div class="loading-state"><div class="spinner"></div> Yükleniyor...</div>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN PAGE -->
+<div class="page" id="page-login">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-title">Giriş Yap</div>
+      <div class="auth-sub">Hesabına giriş yap ve işlem yapmaya başla.</div>
+      <div id="login-alert"></div>
+      <div class="form-group">
+        <label class="form-label">E-posta</label>
+        <input class="form-input" type="email" id="login-email" placeholder="ornek@email.com" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Parola</label>
+        <input class="form-input" type="password" id="login-password" placeholder="••••••••" />
+      </div>
+      <button class="btn-primary" style="width:100%;padding:12px;font-size:15px" onclick="doLogin()">Giriş Yap</button>
+      <div class="auth-footer">
+        Hesabın yok mu? <span class="auth-link" onclick="navigate('register')">Kayıt ol</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REGISTER PAGE -->
+<div class="page" id="page-register">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-title">Kayıt Ol</div>
+      <div class="auth-sub">Ücretsiz hesap oluştur, hemen işlem yapmaya başla.</div>
+      <div id="register-alert"></div>
+      <div class="form-group">
+        <label class="form-label">Kullanıcı Adı</label>
+        <input class="form-input" type="text" id="reg-username" placeholder="knightmaster123" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">E-posta</label>
+        <input class="form-input" type="email" id="reg-email" placeholder="ornek@email.com" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Parola</label>
+        <input class="form-input" type="password" id="reg-password" placeholder="En az 6 karakter" />
+      </div>
+      <button class="btn-primary" style="width:100%;padding:12px;font-size:15px" onclick="doRegister()">Kayıt Ol</button>
+      <div class="auth-footer">
+        Hesabın var mı? <span class="auth-link" onclick="navigate('login')">Giriş yap</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PAGE -->
+<div class="page" id="page-admin">
+  <div class="container">
+    <h1 class="page-title" style="margin-bottom:24px">⚙️ Admin Paneli</h1>
+    <div id="admin-content">
+      <div class="loading-state"><div class="spinner"></div> Yükleniyor...</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PURCHASE -->
+<div class="modal-overlay" id="modal-buy" style="display:none">
+  <div class="modal">
+    <div class="modal-title">Satın Al</div>
+    <div class="modal-sub" id="modal-buy-detail"></div>
+    <div class="form-group">
+      <label class="form-label">Karakter Adın</label>
+      <input class="form-input" id="modal-char-name" placeholder="Knight Online karakter adın" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Sunucu</label>
+      <input class="form-input" id="modal-server-name" readonly />
+    </div>
+    <div class="info-box">ℹ️ Talebin onaylandıktan sonra sana Discord/WhatsApp üzerinden ulaşılacak ve oyun içi takas ayarlanacak.</div>
+    <div class="modal-btns">
+      <button class="btn-outline" onclick="closeModal()">İptal</button>
+      <button class="btn-primary" onclick="confirmPurchase()">Talep Gönder</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <strong>uskoalsat.com</strong> — Knight Online eşya alım/satım servisi
+  <br/><br/>
+  <a href="#" onclick="navigate('rules')">İlan ve Satış Kuralları</a>
+  <a href="#" onclick="navigate('privacy')">Gizlilik / KVKK</a>
+  <a href="#" onclick="navigate('contact')">İletişim</a>
+</footer>
+
+<script>
+const SUPABASE_URL = 'https://outiqjozrgwfyecofogl.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_RzLOGCxZUiosWHN__EzfpQ_Fm9xgqzd';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// STATE
+let currentUser = null;
+let currentPage = 'home';
+let allItems = [];
+let allServers = [];
+let activeServer = null;
+let sortMode = 'new';
+let featuredOnly = false;
+let selectedItem = null;
+let adminEmails = ['admin@uskoalsat.com']; // admin e-postası buraya
+
+// INIT
+async function init() {
+  const { data: { session } } = await db.auth.getSession();
+  if (session) {
+    currentUser = session.user;
+    updateNavAuth();
+  }
+  db.auth.onAuthStateChange((event, session) => {
+    currentUser = session?.user || null;
+    updateNavAuth();
+  });
+  await loadServers();
+  navigate('home');
+}
+
+async function loadServers() {
+  const { data } = await db.from('servers').select('*').eq('is_active', true).order('id');
+  if (data) {
+    allServers = data;
+    const bar = document.getElementById('server-bar');
+    data.forEach(s => {
+      const chip = document.createElement('div');
+      chip.className = 'server-chip';
+      chip.innerHTML = `<span class="dot"></span> ${s.name}`;
+      chip.onclick = () => filterServer(s.id, chip);
+      bar.appendChild(chip);
+    });
+  }
+}
+
+function updateNavAuth() {
+  const el = document.getElementById('nav-auth');
+  if (currentUser) {
+    const isAdmin = adminEmails.includes(currentUser.email);
+    el.innerHTML = `
+      <div class="user-avatar">${(currentUser.email||'U')[0].toUpperCase()}</div>
+      ${isAdmin ? `<button class="btn-outline" onclick="navigate('admin')">⚙️ Admin</button>` : ''}
+      <button class="btn-danger" onclick="doLogout()">Çıkış</button>
+    `;
+  } else {
+    el.innerHTML = `
+      <button class="btn-outline" onclick="navigate('login')">Giriş Yap</button>
+      <button class="btn-primary" onclick="navigate('register')">Kayıt Ol</button>
+    `;
+  }
+}
+
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  currentPage = page;
+  const el = document.getElementById('page-' + page);
+  if (el) el.classList.add('active');
+  window.scrollTo(0, 0);
+
+  if (page === 'buy') loadItems();
+  if (page === 'sell') renderSellPage();
+  if (page === 'rank') loadRank();
+  if (page === 'admin') loadAdmin();
+  return false;
+}
+
+// ITEMS
+async function loadItems() {
+  document.getElementById('items-container').innerHTML = '<div class="loading-state"><div class="spinner"></div> Eşyalar yükleniyor...</div>';
+  let query = db.from('items').select('*, servers(name)').eq('is_sold', false);
+  if (activeServer) query = query.eq('server_id', activeServer);
+  if (featuredOnly) query = query.eq('is_featured', true);
+  if (sortMode === 'new') query = query.order('created_at', { ascending: false });
+  else if (sortMode === 'cheap') query = query.order('price_gb', { ascending: true });
+  else if (sortMode === 'expensive') query = query.order('price_gb', { ascending: false });
+  else if (sortMode === 'name') query = query.order('name', { ascending: true });
+
+  const { data, error } = await query;
+  allItems = data || [];
+  renderItems();
+}
+
+function renderItems() {
+  const container = document.getElementById('items-container');
+  if (!allItems.length) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">📦</div><p>Şu an stokta eşya bulunmuyor.</p></div>';
+    return;
+  }
+  let html = `<table class="items-table">
+    <thead><tr>
+      <th>Eşya</th><th>Fiyat (GB)</th><th>Coin</th><th>Sunucu</th><th>Not</th><th></th>
+    </tr></thead><tbody>`;
+  allItems.forEach(item => {
+    const icon = item.icon_url ? `<img class="item-icon" src="${item.icon_url}" onerror="this.style.display='none'" />` : `<div class="item-icon-placeholder">⚔️</div>`;
+    const featured = item.is_featured ? ' <span class="badge-featured">🔥 Fırsat</span>' : '';
+    const coin = Number(item.price_coin).toLocaleString('tr-TR');
+    const buyBtn = currentUser
+      ? `<button class="btn-buy" onclick="openBuyModal(${item.id})">Satın Al</button>`
+      : `<button class="btn-buy-login" onclick="navigate('login')">Giriş yap</button>`;
+    html += `<tr>
+      <td><div class="item-name">${icon}<span>${item.name}${featured}</span></div></td>
+      <td><div class="price-gb">${item.price_gb} GB</div></td>
+      <td><div class="price-coin">${coin}</div></td>
+      <td><span class="badge-server">${item.servers?.name || '-'}</span></td>
+      <td style="color:var(--text2);font-size:13px">${item.note || '-'}</td>
+      <td>${buyBtn}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function sortItems(mode, btn) {
+  sortMode = mode;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadItems();
+}
+
+function filterFeatured(featured, btn) {
+  featuredOnly = featured;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadItems();
+}
+
+function filterServer(serverId, chip) {
+  activeServer = serverId;
+  document.querySelectorAll('.server-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  if (currentPage === 'buy') loadItems();
+}
+
+// BUY MODAL
+function openBuyModal(itemId) {
+  selectedItem = allItems.find(i => i.id === itemId);
+  if (!selectedItem) return;
+  document.getElementById('modal-buy-detail').innerHTML = `
+    <strong>${selectedItem.name}</strong> — ${selectedItem.price_gb} GB (${Number(selectedItem.price_coin).toLocaleString('tr-TR')} coin)
+  `;
+  document.getElementById('modal-server-name').value = selectedItem.servers?.name || '';
+  document.getElementById('modal-buy').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('modal-buy').style.display = 'none';
+  selectedItem = null;
+}
+
+async function confirmPurchase() {
+  const charName = document.getElementById('modal-char-name').value.trim();
+  if (!charName) { alert('Lütfen karakter adını gir.'); return; }
+  if (!selectedItem || !currentUser) return;
+
+  const { error } = await db.from('sell_requests').insert({
+    user_id: currentUser.id,
+    server_id: selectedItem.server_id,
+    items_list: `[SATIN ALMA] ${selectedItem.name} - Karakter: ${charName}`,
+    status: 'beklemede'
+  });
+  if (error) { alert('Hata: ' + error.message); return; }
+  closeModal();
+  alert('✅ Talebiniz alındı! En kısa sürede sizinle iletişime geçeceğiz.');
+}
+
+// SELL PAGE
+function renderSellPage() {
+  const el = document.getElementById('sell-content');
+  if (!currentUser) {
+    el.innerHTML = `
+      <div class="info-box">ℹ️ Eşya satışı yapabilmek için giriş yapman gerekiyor.</div>
+      <button class="btn-primary" onclick="navigate('login')">Giriş Yap</button>
+      <button class="btn-outline" style="margin-left:8px" onclick="navigate('register')">Kayıt Ol</button>
+    `;
+    return;
+  }
+  el.innerHTML = `
+    <div class="form-card">
+      <div class="info-box">ℹ️ Satmak istediğin eşyaları listele. Teklifini 15 dakika içinde GB/coin olarak ileteceğiz.</div>
+      <div id="sell-alert"></div>
+      <div class="form-group">
+        <label class="form-label">Sunucu Seç</label>
+        <select class="form-select" id="sell-server">
+          <option value="">Sunucu seçin...</option>
+          ${allServers.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Satmak İstediğin Eşyalar</label>
+        <textarea class="form-textarea" id="sell-items" placeholder="Her satıra bir eşya yaz:&#10;Exceptional Iron Bow +7&#10;Dragon Scale Helmet +5&#10;Crystal Belt..."></textarea>
+        <div class="form-hint">Her satıra bir eşya yaz. Eşyanın adı, +değeri ve özelliğini belirt.</div>
+      </div>
+      <button class="btn-primary" style="padding:12px 28px;font-size:15px" onclick="submitSell()">💰 Teklif İste</button>
+    </div>
+  `;
+}
+
+async function submitSell() {
+  const serverId = document.getElementById('sell-server').value;
+  const items = document.getElementById('sell-items').value.trim();
+  const alertEl = document.getElementById('sell-alert');
+  if (!serverId) { alertEl.innerHTML = '<div class="alert alert-error">⚠️ Lütfen sunucu seçin.</div>'; return; }
+  if (!items) { alertEl.innerHTML = '<div class="alert alert-error">⚠️ Lütfen eşya listesi girin.</div>'; return; }
+
+  const { error } = await db.from('sell_requests').insert({
+    user_id: currentUser.id,
+    server_id: parseInt(serverId),
+    items_list: items,
+    status: 'beklemede'
+  });
+  if (error) { alertEl.innerHTML = `<div class="alert alert-error">❌ Hata: ${error.message}</div>`; return; }
+  alertEl.innerHTML = '<div class="alert alert-success">✅ Talebiniz alındı! En kısa sürede size teklif ileteceğiz.</div>';
+  document.getElementById('sell-items').value = '';
+  document.getElementById('sell-server').value = '';
+}
+
+// RANK
+async function loadRank() {
+  const el = document.getElementById('rank-content');
+  const { data, error } = await db.from('sell_requests')
+    .select('user_id, profiles(username)')
+    .eq('status', 'tamamlandi');
+
+  if (error || !data) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">🏆</div><p>Henüz tamamlanan işlem yok.</p></div>';
+    return;
+  }
+
+  const counts = {};
+  data.forEach(r => {
+    const name = r.profiles?.username || 'Anonim';
+    counts[name] = (counts[name] || 0) + 1;
+  });
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 20);
+
+  if (!sorted.length) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">🏆</div><p>Henüz tamamlanan işlem yok.</p></div>';
+    return;
+  }
+
+  let html = `<table class="rank-table">
+    <thead><tr><th>#</th><th>Kullanıcı</th><th>Tamamlanan İşlem</th></tr></thead><tbody>`;
+  sorted.forEach(([name, count], i) => {
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+    html += `<tr class="rank-${i+1}">
+      <td class="rank-num">${medal || (i + 1)}</td>
+      <td><strong>${name}</strong></td>
+      <td>${count} işlem</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+// AUTH
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const alertEl = document.getElementById('login-alert');
+  if (!email || !password) { alertEl.innerHTML = '<div class="alert alert-error">⚠️ Tüm alanları doldurun.</div>'; return; }
+
+  const { error } = await db.auth.signInWithPassword({ email, password });
+  if (error) { alertEl.innerHTML = `<div class="alert alert-error">❌ ${error.message}</div>`; return; }
+  navigate('home');
+}
+
+async function doRegister() {
+  const username = document.getElementById('reg-username').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const alertEl = document.getElementById('register-alert');
+  if (!username || !email || !password) { alertEl.innerHTML = '<div class="alert alert-error">⚠️ Tüm alanları doldurun.</div>'; return; }
+  if (password.length < 6) { alertEl.innerHTML = '<div class="alert alert-error">⚠️ Parola en az 6 karakter olmalı.</div>'; return; }
+
+  const { error } = await db.auth.signUp({ email, password, options: { data: { username } } });
+  if (error) { alertEl.innerHTML = `<div class="alert alert-error">❌ ${error.message}</div>`; return; }
+  alertEl.innerHTML = '<div class="alert alert-success">✅ Kayıt başarılı! E-postanı doğrula ve giriş yap.</div>';
+}
+
+async function doLogout() {
+  await db.auth.signOut();
+  navigate('home');
+}
+
+// ADMIN
+async function loadAdmin() {
+  if (!currentUser || !adminEmails.includes(currentUser.email)) {
+    document.getElementById('admin-content').innerHTML = '<div class="alert alert-error">❌ Bu sayfaya erişim yetkiniz yok.</div>';
+    return;
+  }
+  const el = document.getElementById('admin-content');
+
+  const [{ count: itemCount }, { count: reqCount }, { data: requests }] = await Promise.all([
+    db.from('items').select('*', { count: 'exact', head: true }).eq('is_sold', false),
+    db.from('sell_requests').select('*', { count: 'exact', head: true }).eq('status', 'beklemede'),
+    db.from('sell_requests').select('*, profiles(username), servers(name)').order('created_at', { ascending: false }).limit(20)
+  ]);
+
+  el.innerHTML = `
+    <div class="admin-grid" style="margin-bottom:32px">
+      <div class="stat-card"><div class="stat-val">${itemCount || 0}</div><div class="stat-label">Aktif Eşya</div></div>
+      <div class="stat-card"><div class="stat-val">${reqCount || 0}</div><div class="stat-label">Bekleyen Talep</div></div>
+    </div>
+
+    <h2 style="font-size:18px;font-weight:700;margin-bottom:16px">📦 Eşya Ekle</h2>
+    <div class="form-card" style="margin-bottom:32px">
+      <div id="admin-add-alert"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="form-group"><label class="form-label">Eşya Adı</label><input class="form-input" id="a-name" placeholder="Exceptional Iron Bow +7" /></div>
+        <div class="form-group"><label class="form-label">Sunucu</label>
+          <select class="form-select" id="a-server">
+            ${allServers.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Fiyat (GB)</label><input class="form-input" type="number" id="a-gb" placeholder="5.5" step="0.1" /></div>
+        <div class="form-group"><label class="form-label">Fiyat (Coin)</label><input class="form-input" type="number" id="a-coin" placeholder="550000000" /></div>
+        <div class="form-group"><label class="form-label">Not (isteğe bağlı)</label><input class="form-input" id="a-note" placeholder="STR basılı" /></div>
+        <div class="form-group"><label class="form-label">İkon URL (isteğe bağlı)</label><input class="form-input" id="a-icon" placeholder="https://..." /></div>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:16px;cursor:pointer">
+        <input type="checkbox" id="a-featured" /> 🔥 Fırsat olarak işaretle
+      </label>
+      <button class="btn-primary" onclick="adminAddItem()">Eşya Ekle</button>
+    </div>
+
+    <h2 style="font-size:18px;font-weight:700;margin-bottom:16px">📋 Son Talepler</h2>
+    <table class="items-table">
+      <thead><tr><th>Kullanıcı</th><th>Sunucu</th><th>Eşyalar</th><th>Durum</th><th></th></tr></thead>
+      <tbody>
+        ${(requests || []).map(r => `
+          <tr>
+            <td><strong>${r.profiles?.username || 'Anonim'}</strong></td>
+            <td><span class="badge-server">${r.servers?.name || '-'}</span></td>
+            <td style="max-width:250px;font-size:13px;white-space:pre-wrap">${r.items_list}</td>
+            <td><span class="tag ${r.status === 'tamamlandi' ? 'tag-green' : r.status === 'reddedildi' ? 'tag-red' : 'tag-yellow'}">${r.status}</span></td>
+            <td style="display:flex;gap:6px">
+              <button class="btn-primary" style="padding:5px 10px;font-size:12px" onclick="updateReq(${r.id},'tamamlandi')">✅</button>
+              <button class="btn-danger" style="padding:5px 10px;font-size:12px" onclick="updateReq(${r.id},'reddedildi')">❌</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+async function adminAddItem() {
+  const alertEl = document.getElementById('admin-add-alert');
+  const name = document.getElementById('a-name').value.trim();
+  const serverId = document.getElementById('a-server').value;
+  const gb = parseFloat(document.getElementById('a-gb').value);
+  const coin = parseInt(document.getElementById('a-coin').value);
+  const note = document.getElementById('a-note').value.trim();
+  const icon = document.getElementById('a-icon').value.trim();
+  const featured = document.getElementById('a-featured').checked;
+
+  if (!name || !serverId || !gb || !coin) {
+    alertEl.innerHTML = '<div class="alert alert-error">⚠️ Zorunlu alanları doldurun.</div>'; return;
+  }
+  const { error } = await db.from('items').insert({
+    name, server_id: parseInt(serverId), price_gb: gb, price_coin: coin,
+    note: note || null, icon_url: icon || null, is_featured: featured
+  });
+  if (error) { alertEl.innerHTML = `<div class="alert alert-error">❌ ${error.message}</div>`; return; }
+  alertEl.innerHTML = '<div class="alert alert-success">✅ Eşya eklendi!</div>';
+  document.getElementById('a-name').value = '';
+  document.getElementById('a-gb').value = '';
+  document.getElementById('a-coin').value = '';
+  document.getElementById('a-note').value = '';
+  document.getElementById('a-icon').value = '';
+  document.getElementById('a-featured').checked = false;
+}
+
+async function updateReq(id, status) {
+  await db.from('sell_requests').update({ status }).eq('id', id);
+  loadAdmin();
+}
+
+init();
+</script>
+</body>
+</html>
